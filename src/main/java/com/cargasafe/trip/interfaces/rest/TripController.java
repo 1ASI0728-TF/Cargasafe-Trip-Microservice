@@ -1,5 +1,6 @@
 package com.cargasafe.trip.interfaces.rest;
 
+import com.cargasafe.trip.domain.exceptions.MerchantNotFoundException;
 import com.cargasafe.trip.domain.exceptions.OriginPointNotFoundException;
 import com.cargasafe.trip.domain.exceptions.TripNotFoundException;
 import com.cargasafe.trip.domain.model.commands.CompleteTripCommand;
@@ -81,7 +82,7 @@ public class TripController {
         try {
             tripCommandService.handle(CreateTripCommandFromResourceAssembler.toCommandFromResource(resource));
             return ResponseEntity.status(HttpStatus.CREATED).build();
-        } catch (OriginPointNotFoundException e) {
+        } catch (MerchantNotFoundException | OriginPointNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
         }
     }

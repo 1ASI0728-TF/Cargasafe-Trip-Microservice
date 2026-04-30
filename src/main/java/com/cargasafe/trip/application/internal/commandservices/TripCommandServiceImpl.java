@@ -1,5 +1,7 @@
 package com.cargasafe.trip.application.internal.commandservices;
 
+import com.cargasafe.trip.application.internal.outboundservices.ExternalMerchantService;
+import com.cargasafe.trip.domain.exceptions.MerchantNotFoundException;
 import com.cargasafe.trip.domain.exceptions.OriginPointNotFoundException;
 import com.cargasafe.trip.domain.exceptions.TripNotFoundException;
 import com.cargasafe.trip.domain.model.aggregates.Trip;
@@ -20,18 +22,24 @@ public class TripCommandServiceImpl implements TripCommandService {
     private final TripRepository tripRepository;
     private final OriginPointRepository originPointRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final ExternalMerchantService externalMerchantService;
 
     public TripCommandServiceImpl(TripRepository tripRepository,
                                    OriginPointRepository originPointRepository,
-                                   ApplicationEventPublisher eventPublisher) {
+                                   ApplicationEventPublisher eventPublisher,
+                                   ExternalMerchantService externalMerchantService) {
         this.tripRepository = tripRepository;
         this.originPointRepository = originPointRepository;
         this.eventPublisher = eventPublisher;
+        this.externalMerchantService = externalMerchantService;
     }
 
     @Transactional
     @Override
     public Trip handle(CreateTripCommand command) {
+        if (!externalMerchantService.existsById(command.merchantId()))
+            throw new MerchantNotFoundException(command.merchantId());
+
         var originPoint = originPointRepository.findById(command.originPointId())
                 .orElseThrow(() -> new OriginPointNotFoundException(command.originPointId()));
 
